@@ -22,9 +22,9 @@ def create_label_windows(labels, window_length, step_size):
 
 def build_lstm(window_length, features):
     model = Sequential(name="LSTM_Autoencoder")
-    model.add(LSTM(32, activation='relu', input_shape=(window_length, features), return_sequences=False))
+    model.add(LSTM(64, activation='relu', input_shape=(window_length, features), return_sequences=False))
     model.add(RepeatVector(window_length))
-    model.add(LSTM(32, activation='relu', return_sequences=True))
+    model.add(LSTM(64, activation='relu', return_sequences=True))
     model.add(TimeDistributed(Dense(features)))
     model.compile(optimizer='adam', loss='mae')
     return model
