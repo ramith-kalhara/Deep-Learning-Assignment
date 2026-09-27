@@ -59,7 +59,7 @@ def run_lstm_pipeline():
     early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
     
     print("Training LSTM...")
-    history = model.fit(X_train, X_train, epochs=50, batch_size=64, validation_split=0.15, callbacks=[early_stopping], verbose=1)
+    history = model.fit(X_train, X_train, epochs=100, batch_size=32, validation_split=0.15, callbacks=[early_stopping], verbose=1)
     
     print("Evaluating LSTM...")
     X_val = X_train[int(len(X_train)*0.85):]
