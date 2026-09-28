@@ -27,11 +27,9 @@ class VAELossLayer(Layer):
         return outputs
 
 def load_data(file_path):
-    return np.loadtxt(file_path, delimiter=',')
+    return np.loadtxt(file_path, delimiter=',', dtype=np.float32)
 
-def create_windows(data, window_length, step_size):
-    windows = [data[i : i + window_length] for i in range(0, len(data) - window_length + 1, step_size)]
-    return np.array(windows)
+# Removed create_windows to use tf.keras.utils.timeseries_dataset_from_array instead
 
 def create_label_windows(labels, window_length, step_size):
     windows = [1 if np.any(labels[i : i + window_length]) else 0 for i in range(0, len(labels) - window_length + 1, step_size)]
@@ -49,8 +47,9 @@ def build_vae(window_length, features, latent_dim=16):
     encoder = Model(inputs, [z_mean, z_log_var, z], name="encoder")
 
     latent_inputs = Input(shape=(latent_dim,))
-    x = Dense(15 * 64, activation="relu")(latent_inputs) 
-    x = Reshape((15, 64))(x)
+    initial_length = window_length // 4
+    x = Dense(initial_length * 64, activation="relu")(latent_inputs) 
+    x = Reshape((initial_length, 64))(x)
     x = Conv1D(64, 3, activation="relu", padding="same")(x)
     x = UpSampling1D(2)(x)
     x = Conv1D(32, 3, activation="relu", padding="same")(x)
@@ -86,22 +85,38 @@ def run_vae_pipeline():
     train_scaled = scaler.fit_transform(train_data)
     test_scaled = scaler.transform(test_data)
     
-    X_train = create_windows(train_scaled, window_length, 1)
-    X_test = create_windows(test_scaled, window_length, 1)
+    split_idx = int(len(train_scaled) * 0.85)
+    train_data_split = train_scaled[:split_idx]
+    val_data_split = train_scaled[split_idx:]
+    
+    train_dataset = tf.keras.utils.timeseries_dataset_from_array(train_data_split, None, sequence_length=window_length, sequence_stride=1, batch_size=32)
+    val_dataset = tf.keras.utils.timeseries_dataset_from_array(val_data_split, None, sequence_length=window_length, sequence_stride=1, batch_size=32)
+    test_dataset = tf.keras.utils.timeseries_dataset_from_array(test_scaled, None, sequence_length=window_length, sequence_stride=1, batch_size=32)
+    
     y_test = create_label_windows(test_labels, window_length, 1)
     
     model = build_vae(window_length, 38)
-    early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
     
     print("Training VAE...")
-    history = model.fit(X_train, None, epochs=50, batch_size=64, validation_split=0.15, callbacks=[early_stopping], verbose=1)
+    history = model.fit(train_dataset, epochs=100, validation_data=val_dataset, callbacks=[early_stopping], verbose=1)
     
     print("Evaluating VAE...")
-    X_val = X_train[int(len(X_train)*0.85):]
-    val_mae = np.mean(np.abs(X_val - model.predict(X_val)), axis=(1,2))
+    val_mae = []
+    for batch in val_dataset:
+        preds = model.predict_on_batch(batch)
+        mae = np.mean(np.abs(batch.numpy() - preds), axis=(1,2))
+        val_mae.extend(mae)
+    val_mae = np.array(val_mae)
     threshold = np.mean(val_mae) + 3 * np.std(val_mae)
     
-    test_mae = np.mean(np.abs(X_test - model.predict(X_test)), axis=(1,2))
+    test_mae = []
+    for batch in test_dataset:
+        preds = model.predict_on_batch(batch)
+        mae = np.mean(np.abs(batch.numpy() - preds), axis=(1,2))
+        test_mae.extend(mae)
+    test_mae = np.array(test_mae)
+    
     preds = (test_mae > threshold).astype(int)
     
     precision = precision_score(y_test, preds, zero_division=0)
