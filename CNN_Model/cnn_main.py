@@ -22,13 +22,13 @@ def create_label_windows(labels, window_length, step_size):
 
 def build_cnn(window_length, features):
     input_layer = Input(shape=(window_length, features))
-    x = Conv1D(filters=32, kernel_size=3, activation='relu', padding='same')(input_layer)
+    x = Conv1D(filters=64, kernel_size=3, activation='relu', padding='same')(input_layer)
     x = MaxPooling1D(pool_size=2, padding='same')(x)
-    x = Conv1D(filters=16, kernel_size=3, activation='relu', padding='same')(x)
-    encoded = MaxPooling1D(pool_size=2, padding='same')(x)
-    x = Conv1D(filters=16, kernel_size=3, activation='relu', padding='same')(encoded)
-    x = UpSampling1D(size=2)(x)
     x = Conv1D(filters=32, kernel_size=3, activation='relu', padding='same')(x)
+    encoded = MaxPooling1D(pool_size=2, padding='same')(x)
+    x = Conv1D(filters=32, kernel_size=3, activation='relu', padding='same')(encoded)
+    x = UpSampling1D(size=2)(x)
+    x = Conv1D(filters=64, kernel_size=3, activation='relu', padding='same')(x)
     x = UpSampling1D(size=2)(x)
     decoded = Conv1D(filters=features, kernel_size=3, activation='sigmoid', padding='same')(x)
     model = Model(input_layer, decoded, name="CNN_Autoencoder")
