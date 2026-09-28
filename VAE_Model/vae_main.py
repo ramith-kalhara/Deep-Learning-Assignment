@@ -95,10 +95,10 @@ def run_vae_pipeline():
     y_test = create_label_windows(test_labels, window_length, 1)
     
     model = build_vae(window_length, 38)
-    early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
     
     print("Training VAE...")
-    history = model.fit(train_dataset, epochs=50, validation_data=val_dataset, callbacks=[early_stopping], verbose=1)
+    history = model.fit(train_dataset, epochs=100, validation_data=val_dataset, callbacks=[early_stopping], verbose=1)
     
     print("Evaluating VAE...")
     val_mae = []
