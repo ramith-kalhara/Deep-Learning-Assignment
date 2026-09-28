@@ -47,8 +47,9 @@ def build_vae(window_length, features, latent_dim=16):
     encoder = Model(inputs, [z_mean, z_log_var, z], name="encoder")
 
     latent_inputs = Input(shape=(latent_dim,))
-    x = Dense(15 * 64, activation="relu")(latent_inputs) 
-    x = Reshape((15, 64))(x)
+    initial_length = window_length // 4
+    x = Dense(initial_length * 64, activation="relu")(latent_inputs) 
+    x = Reshape((initial_length, 64))(x)
     x = Conv1D(64, 3, activation="relu", padding="same")(x)
     x = UpSampling1D(2)(x)
     x = Conv1D(32, 3, activation="relu", padding="same")(x)
@@ -73,7 +74,7 @@ def run_vae_pipeline():
     data_dir = os.path.join(base_dir, 'archive', 'ServerMachineDataset')
     
     machine_id = 'machine-1-1.txt'
-    window_length = 60
+    window_length = 100
     
     print("Loading data...")
     train_data = load_data(os.path.join(data_dir, 'train', machine_id))
