@@ -22,13 +22,13 @@ def create_label_windows(labels, window_length, step_size):
 
 def build_cnn(window_length, features):
     input_layer = Input(shape=(window_length, features))
-    x = Conv1D(filters=128, kernel_size=7, activation='relu', padding='same')(input_layer)
+    x = Conv1D(filters=32, kernel_size=3, activation='relu', padding='same')(input_layer)
     x = MaxPooling1D(pool_size=2, padding='same')(x)
-    x = Conv1D(filters=64, kernel_size=7, activation='relu', padding='same')(x)
+    x = Conv1D(filters=16, kernel_size=3, activation='relu', padding='same')(x)
     encoded = MaxPooling1D(pool_size=2, padding='same')(x)
-    x = Conv1D(filters=64, kernel_size=7, activation='relu', padding='same')(encoded)
+    x = Conv1D(filters=16, kernel_size=3, activation='relu', padding='same')(encoded)
     x = UpSampling1D(size=2)(x)
-    x = Conv1D(filters=128, kernel_size=7, activation='relu', padding='same')(x)
+    x = Conv1D(filters=32, kernel_size=3, activation='relu', padding='same')(x)
     x = UpSampling1D(size=2)(x)
     decoded = Conv1D(filters=features, kernel_size=3, activation='sigmoid', padding='same')(x)
     model = Model(input_layer, decoded, name="CNN_Autoencoder")
@@ -65,7 +65,7 @@ def run_cnn_pipeline():
     early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
     
     print("Training CNN...")
-    history = model.fit(X_train, X_train, epochs=50, batch_size=64, validation_split=0.15, callbacks=[early_stopping], verbose=1)
+    history = model.fit(X_train, X_train, epochs=50, batch_size=128, validation_split=0.15, callbacks=[early_stopping], verbose=1)
     
     print("Evaluating CNN...")
     X_val = X_train[int(len(X_train)*0.85):]
