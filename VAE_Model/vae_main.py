@@ -88,9 +88,9 @@ def run_vae_pipeline():
     train_data_split = train_scaled[:split_idx]
     val_data_split = train_scaled[split_idx:]
     
-    train_dataset = tf.keras.utils.timeseries_dataset_from_array(train_data_split, None, sequence_length=window_length, sequence_stride=1, batch_size=64)
-    val_dataset = tf.keras.utils.timeseries_dataset_from_array(val_data_split, None, sequence_length=window_length, sequence_stride=1, batch_size=64)
-    test_dataset = tf.keras.utils.timeseries_dataset_from_array(test_scaled, None, sequence_length=window_length, sequence_stride=1, batch_size=64)
+    train_dataset = tf.keras.utils.timeseries_dataset_from_array(train_data_split, None, sequence_length=window_length, sequence_stride=1, batch_size=32)
+    val_dataset = tf.keras.utils.timeseries_dataset_from_array(val_data_split, None, sequence_length=window_length, sequence_stride=1, batch_size=32)
+    test_dataset = tf.keras.utils.timeseries_dataset_from_array(test_scaled, None, sequence_length=window_length, sequence_stride=1, batch_size=32)
     
     y_test = create_label_windows(test_labels, window_length, 1)
     
