@@ -74,7 +74,7 @@ def run_vae_pipeline():
     data_dir = os.path.join(base_dir, 'archive', 'ServerMachineDataset')
     
     machine_id = 'machine-1-1.txt'
-    window_length = 100
+    window_length = 60
     
     print("Loading data...")
     train_data = load_data(os.path.join(data_dir, 'train', machine_id))
