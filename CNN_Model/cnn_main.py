@@ -62,10 +62,10 @@ def run_cnn_pipeline():
     y_test = create_label_windows(test_labels, window_length, 1)
     
     model = build_cnn(window_length, 38)
-    early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=8, restore_best_weights=True)
     
     print("Training CNN...")
-    history = model.fit(X_train, X_train, epochs=50, batch_size=128, validation_split=0.15, callbacks=[early_stopping], verbose=1)
+    history = model.fit(X_train, X_train, epochs=50, batch_size=64, validation_split=0.15, callbacks=[early_stopping], verbose=1)
     
     print("Evaluating CNN...")
     X_val = X_train[int(len(X_train)*0.85):]
